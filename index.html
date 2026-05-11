@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Massage Warehouse - Palette Stress Test</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    
+    .header h1 {
+      font-size: 28px;
+      margin-bottom: 0.5rem;
+      color: #1a1a1a;
+    }
+    
+    .header p {
+      font-size: 14px;
+      color: #666;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    .tips-section {
+      background: #fff;
+      border-left: 4px solid #e24b4a;
+      padding: 1.25rem;
+      margin-bottom: 2rem;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    .tips-section h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: #1a1a1a;
+    }
+    
+    .tips-section ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    
+    .tips-section li {
+      font-size: 13px;
+      color: #555;
+      margin-bottom: 0.5rem;
+      padding-left: 20px;
+      position: relative;
+    }
+    
+    .tips-section li:before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      font-weight: bold;
+    }
+    
+    .scoring-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    .scorer-column {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    
+    .scorer-header {
+      background: linear-gradient(135deg, #e24b4a 0%, #993c1d 100%);
+      color: white;
+      padding: 1.5rem;
+      border-bottom: 3px solid #c1203d;
+    }
+    
+    .scorer-header h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0;
+    }
+    
+    .scorer-header p {
+      font-size: 12px;
+      margin-top: 0.25rem;
+      opacity: 0.9;
+    }
+    
+    .palette-section {
+      border-bottom: 1px solid #eee;
+      padding: 1.5rem;
+    }
+    
+    .palette-section:last-child {
+      border-bottom: none;
+    }
+    
+    .palette-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 1.25rem;
+    }
+    
+    .palette-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1a1a1a;
+      flex: 1;
+    }
+    
+    .palette-colors {
+      display: flex;
+      gap: 6px;
+    }
+    
+    .color-swatch {
+      width: 24px;
+      height: 24px;
+      border-radius: 3px;
+      border: 1px solid #ddd;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    
+    .question-group {
+      margin-bottom: 1.25rem;
+    }
+    
+    .question-group:last-child {
+      margin-bottom: 0;
+    }
+    
+    .question-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 0.4rem;
+    }
+    
+    .question-hint {
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 0.6rem;
+      line-height: 1.5;
+    }
+    
+    .scale-container {
+      display: flex;
+      gap: 5px;
+    }
+    
+    .scale-btn {
+      width: 32px;
+      height: 32px;
+      border: 1.5px solid #ddd;
+      background: #fff;
+      color: #666;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 150ms ease;
+    }
+    
+    .scale-btn:hover {
+      border-color: #999;
+      background: #f9f9f9;
+    }
+    
+    .scale-btn.selected {
+      background: #e24b4a;
+      color: white;
+      border-color: #c1203d;
+      box-shadow: 0 2px 4px rgba(226, 75, 74, 0.3);
+    }
+    
+    .score-summary {
+      background: #f9f9f9;
+      border-top: 1px solid #eee;
+      padding: 1rem 1.5rem;
+      display: flex;
+      gap: 1rem;
+      justify-content: space-around;
+    }
+    
+    .score-card {
+      text-align: center;
+    }
+    
+    .score-label {
+      font-size: 10px;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.3rem;
+      font-weight: 600;
+    }
+    
+    .score-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: #e24b4a;
+    }
+    
+    .export-section {
+      text-align: center;
+      margin-top: 2rem;
+    }
+    
+    .export-btn {
+      background: #e24b4a;
+      color: white;
+      border: none;
+      padding: 12px 32px;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 150ms ease;
+      box-shadow: 0 2px 8px rgba(226, 75, 74, 0.2);
+    }
+    
+    .export-btn:hover {
+      background: #c1203d;
+      box-shadow: 0 4px 12px rgba(226, 75, 74, 0.3);
+    }
+    
+    .question-category {
+      font-size: 11px;
+      font-weight: 700;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 1.25rem;
+      margin-bottom: 0.75rem;
+      padding-top: 1.25rem;
+      border-top: 2px solid #f0f0f0;
+    }
+    
+    .question-category:first-of-type {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: none;
+    }
+    
+    @media (max-width: 1024px) {
+      .scoring-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>Massage Warehouse Palette Stress Test</h1>
+    <p>Scoring matrix for color palette evaluation. Complete your ratings using the dual-scorer format below.</p>
+  </div>
+  
+  <div class="tips-section">
+    <h3>Scoring Tips & Instructions</h3>
+    <ul>
+      <li><strong>Don't overthink it.</strong> If you're torn between a 3 and a 4, pick one and move on—the goal is to compare palettes, not perfect precision.</li>
+      <li><strong>Score one question across all 9 palettes first</strong> (not one palette across all questions)—it helps your brain calibrate what a "3" vs "5" actually means.</li>
+      <li><strong>Flexibility testing:</strong> For each palette, open Canva and click "shuffle" a few times on the brand kit to see how the colors work in different compositions. We're testing flexibility too—does the palette maintain its integrity when colors are arranged differently?</li>
+    </ul>
+  </div>
+  
+  <div class="scoring-grid">
+    <div class="scorer-column" id="steph-column"></div>
+    <div class="scorer-column" id="leanne-column"></div>
+  </div>
+  
+  <div class="export-section">
+    <button class="export-btn" onclick="exportScores()">Export Scores as CSV</button>
+  </div>
+</div>
+
+<script>
+const palettes = [
+  { name: "MWUK Brand Kit", colors: ["#f9e8c8", "#f5d490", "#f9b323", "#ff0000", "#8f3322", "#f7cbb8"] },
+  { name: "Greg - Sunshine: Bright & Cheerful", colors: ["#c1203d", "#f4c649", "#5eccc2", "#ede7e6", "#1c1c1c"] },
+  { name: "Greg - Trust, Calm, Professional & Warm", colors: ["#c1203d", "#6b8b7f", "#d8a889", "#ede7e6", "#1c1c1c"] },
+  { name: "Greg - Energetic Brand", colors: ["#ff0000", "#ff7c00", "#ffef00", "#4ecdc5", "#8f00ff"] },
+  { name: "Greg - Modern Wellness", colors: ["#ff0000", "#6b8b7f", "#d8a889", "#ede7e6", "#1c1c1c"] },
+  { name: "Leanne - bright, warm, wellness", colors: ["#ee7647", "#f5d949", "#4ecdc5", "#1d2954", "#e6d4c4"] },
+  { name: "Leanne", colors: ["#c13c3c", "#f5d949", "#4db8e5", "#1d2954", "#e6d4c4"] },
+  { name: "Steph - Golden Horizon (5 Secondary Options)", colors: ["#f5b107", "#ede7e6", "#1d2954", "#f0a500", "#ee6600"] },
+  { name: "Steph - Dynamic Trust", colors: ["#f0a500", "#f5b107", "#1d2954", "#a8d5ff", "#ede7e6"] },
+  { name: "Steph - Electric Wellness", colors: ["#ff0000", "#4db8e5", "#ede7e6", "#1d2954", "#a8d5ff"] }
+];
+
+const questions = [
+  {
+    category: "COHESIVE FEED",
+    items: [
+      { q: "Grid harmony", h: "Do all 12 posts feel like they belong together? Colors complement across the feed without clashing." },
+      { q: "Visual consistency", h: "Do the colors create a recognizable, repeatable 'look'? Would someone recognize this as YOUR brand across posts?" }
+    ]
+  },
+  {
+    category: "INDIVIDUAL POST STRENGTH",
+    items: [
+      { q: "Contrast & legibility", h: "Text is readable on mobile at small sizes. No colors make text disappear or strain the eye." },
+      { q: "Post pop (visual hierarchy)", h: "Posts stand out on the feed. The palette has enough visual weight to catch attention." }
+    ]
+  },
+  {
+    category: "BRAND ALIGNMENT",
+    items: [
+      { q: "Modern wellness feel", h: "Does it feel contemporary + health/wellness focused? Not dated, not clinical/sterile." },
+      { q: "Energy level matches vibe", h: "Energetic enough to feel dynamic, but not so much it feels chaotic or unprofessional. Supports YOUR brand tone." }
+    ]
+  },
+  {
+    category: "CONTENT COMPATIBILITY",
+    items: [
+      { q: "Works with varied photography", h: "Colors don't clash with different content types (headshots, product shots, wellness imagery, lifestyle). Overlay text reads well." },
+      { q: "Email/secondary platform ready", h: "Does this palette feel like it would work equally well on emails, website headers, merchandise, etc.?" }
+    ]
+  },
+  {
+    category: "FLEXIBILITY",
+    items: [
+      { q: "Shuffle flexibility", h: "When you shuffle the brand kit in Canva, does the palette maintain its character? Colors work in different arrangements without feeling disjointed." }
+    ]
+  }
+];
+
+const scores = {
+  steph: {},
+  leanne: {}
+};
+
+function initScores() {
+  ["steph", "leanne"].forEach(scorer => {
+    palettes.forEach((p, pi) => {
+      scores[scorer][pi] = {};
+      questions.forEach((qg, qi) => {
+        qg.items.forEach((item, ii) => {
+          scores[scorer][pi][`${qi}-${ii}`] = null;
+        });
+      });
+    });
+  });
+}
+
+function renderScorerColumn(scorer, columnId) {
+  const column = document.getElementById(columnId);
+  const scorerName = scorer.charAt(0).toUpperCase() + scorer.slice(1);
+  
+  let html = `
+    <div class="scorer-header">
+      <h2>${scorerName}</h2>
+      <p>Complete your ratings below</p>
+    </div>
+  `;
+  
+  palettes.forEach((palette, paletteIdx) => {
+    html += `
+      <div class="palette-section">
+        <div class="palette-header">
+          <div class="palette-name">${palette.name}</div>
+          <div class="palette-colors">
+            ${palette.colors.map(color => `<div class="color-swatch" style="background: ${color};"></div>`).join("")}
+          </div>
+        </div>
+    `;
+    
+    let categoryCounter = {};
+    questions.forEach((qg, qgIdx) => {
+      if (!categoryCounter[qg.category]) {
+        html += `<div class="question-category">${qg.category}</div>`;
+        categoryCounter[qg.category] = true;
+      }
+      
+      qg.items.forEach((item, itemIdx) => {
+        const qKey = `${qgIdx}-${itemIdx}`;
+        const selected = scores[scorer][paletteIdx][qKey];
+        
+        html += `
+          <div class="question-group">
+            <div class="question-label">${item.q}</div>
+            <div class="question-hint">${item.h}</div>
+            <div class="scale-container">
+              ${[1, 2, 3, 4, 5].map(num => `
+                <button class="scale-btn ${selected === num ? "selected" : ""}" 
+                  onclick="setScore('${scorer}', ${paletteIdx}, '${qKey}', ${num})">
+                  ${num}
+                </button>
+              `).join("")}
+            </div>
+          </div>
+        `;
+      });
+    });
+    
+    const paletteScores = scores[scorer][paletteIdx];
+    const allScores = Object.values(paletteScores).filter(s => s !== null).flat();
+    const totalQuestions = Object.keys(paletteScores).length;
+    const avgScore = allScores.length > 0 ? (allScores.reduce((a, b) => a + b, 0) / allScores.length).toFixed(1) : "—";
+    
+    html += `
+      <div class="score-summary">
+        <div class="score-card">
+          <div class="score-label">Answered</div>
+          <div class="score-value">${allScores.length}/${totalQuestions}</div>
+        </div>
+        <div class="score-card">
+          <div class="score-label">Average</div>
+          <div class="score-value">${avgScore}</div>
+        </div>
+      </div>
+    `;
+    
+    html += `</div>`;
+  });
+  
+  column.innerHTML = html;
+}
+
+function setScore(scorer, paletteIdx, qKey, value) {
+  if (scores[scorer][paletteIdx][qKey] === value) {
+    scores[scorer][paletteIdx][qKey] = null;
+  } else {
+    scores[scorer][paletteIdx][qKey] = value;
+  }
+  renderScorerColumn(scorer, scorer === "steph" ? "steph-column" : "leanne-column");
+}
+
+function exportScores() {
+  let csv = "Palette,";
+  
+  // Header row
+  questions.forEach(qg => {
+    qg.items.forEach(item => {
+      csv += `"${item.q}",`;
+    });
+  });
+  csv += "Steph Avg,Leanne Avg,Difference\n";
+  
+  // Data rows
+  palettes.forEach((palette, pi) => {
+    csv += `"${palette.name}",`;
+    
+    let stephSum = 0;
+    let stephCount = 0;
+    let leanneSum = 0;
+    let leanneCount = 0;
+    
+    questions.forEach((qg, qi) => {
+      qg.items.forEach((item, ii) => {
+        const qKey = `${qi}-${ii}`;
+        const stephScore = scores.steph[pi][qKey];
+        const leanneScore = scores.leanne[pi][qKey];
+        
+        csv += `"${stephScore || ""}|${leanneScore || ""}",`;
+        
+        if (stephScore) {
+          stephSum += stephScore;
+          stephCount++;
+        }
+        if (leanneScore) {
+          leanneSum += leanneScore;
+          leanneCount++;
+        }
+      });
+    });
+    
+    const stephAvg = stephCount > 0 ? (stephSum / stephCount).toFixed(1) : "";
+    const leanneAvg = leanneCount > 0 ? (leanneSum / leanneCount).toFixed(1) : "";
+    const diff = stephAvg && leanneAvg ? (Math.abs(stephAvg - leanneAvg)).toFixed(1) : "";
+    
+    csv += `${stephAvg},${leanneAvg},${diff}\n`;
+  });
+  
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "massage-warehouse-palette-scores.csv";
+  link.click();
+}
+
+initScores();
+renderScorerColumn("steph", "steph-column");
+renderScorerColumn("leanne", "leanne-column");
+</script>
+
+</body>
+</html>
