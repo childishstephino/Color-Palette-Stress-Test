@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -36,6 +37,71 @@
       color: #666;
       max-width: 600px;
       margin: 0 auto;
+    }
+    
+    .status-bar {
+      background: white;
+      padding: 1rem;
+      border-radius: 4px;
+      margin-bottom: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+    
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4CAF50;
+    }
+    
+    .status-dot.offline {
+      background: #ff9800;
+    }
+    
+    .save-btn-container {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .save-btn, .export-btn {
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 150ms ease;
+    }
+    
+    .save-btn {
+      background: #4CAF50;
+      color: white;
+    }
+    
+    .save-btn:hover {
+      background: #45a049;
+    }
+    
+    .export-btn {
+      background: #e24b4a;
+      color: white;
+    }
+    
+    .export-btn:hover {
+      background: #c1203d;
     }
     
     .tips-section {
@@ -183,7 +249,7 @@
       transition: all 150ms ease;
     }
     
-    .scale-btn:hover {
+    .scale-btn:hover:not(:disabled) {
       border-color: #999;
       background: #f9f9f9;
     }
@@ -193,6 +259,49 @@
       color: white;
       border-color: #c1203d;
       box-shadow: 0 2px 4px rgba(226, 75, 74, 0.3);
+    }
+    
+    .scale-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    
+    .notes-section {
+      margin-top: 1.25rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid #eee;
+    }
+    
+    .notes-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.5rem;
+    }
+    
+    .notes-textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 12px;
+      resize: vertical;
+      min-height: 60px;
+    }
+    
+    .notes-textarea:focus {
+      outline: none;
+      border-color: #e24b4a;
+      box-shadow: 0 0 0 2px rgba(226, 75, 74, 0.1);
+    }
+    
+    .notes-textarea:disabled {
+      background: #f9f9f9;
+      opacity: 0.7;
+      cursor: not-allowed;
     }
     
     .score-summary {
@@ -223,29 +332,6 @@
       color: #e24b4a;
     }
     
-    .export-section {
-      text-align: center;
-      margin-top: 2rem;
-    }
-    
-    .export-btn {
-      background: #e24b4a;
-      color: white;
-      border: none;
-      padding: 12px 32px;
-      border-radius: 4px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 150ms ease;
-      box-shadow: 0 2px 8px rgba(226, 75, 74, 0.2);
-    }
-    
-    .export-btn:hover {
-      background: #c1203d;
-      box-shadow: 0 4px 12px rgba(226, 75, 74, 0.3);
-    }
-    
     .question-category {
       font-size: 11px;
       font-weight: 700;
@@ -264,6 +350,86 @@
       border-top: none;
     }
     
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal.show {
+      display: flex;
+    }
+    
+    .modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    
+    .modal-content h2 {
+      margin-bottom: 1rem;
+      font-size: 18px;
+    }
+    
+    .modal-content p {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 1.5rem;
+    }
+    
+    .modal-input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      margin-bottom: 1.5rem;
+    }
+    
+    .modal-buttons {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .modal-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 150ms ease;
+    }
+    
+    .modal-btn-primary {
+      background: #e24b4a;
+      color: white;
+    }
+    
+    .modal-btn-primary:hover {
+      background: #c1203d;
+    }
+    
+    .modal-btn-secondary {
+      background: #eee;
+      color: #333;
+    }
+    
+    .modal-btn-secondary:hover {
+      background: #ddd;
+    }
+    
     @media (max-width: 1024px) {
       .scoring-grid {
         grid-template-columns: 1fr;
@@ -276,7 +442,19 @@
 <div class="container">
   <div class="header">
     <h1>Massage Warehouse Palette Stress Test</h1>
-    <p>Scoring matrix for color palette evaluation. Complete your ratings using the dual-scorer format below.</p>
+    <p>Scoring matrix for color palette evaluation. Scores sync across devices automatically.</p>
+  </div>
+  
+  <div class="status-bar">
+    <div class="status-item">
+      <div class="status-dot" id="sync-status"></div>
+      <span id="sync-text">Ready to score</span>
+    </div>
+    <div class="save-btn-container">
+      <button class="save-btn" id="save-btn" onclick="manualSave()">Save Now</button>
+      <button class="save-btn" onclick="loadData()" style="background: #2196F3;">Refresh Data</button>
+      <button class="export-btn" onclick="exportScores()">Export CSV</button>
+    </div>
   </div>
   
   <div class="tips-section">
@@ -285,6 +463,7 @@
       <li><strong>Don't overthink it.</strong> If you're torn between a 3 and a 4, pick one and move on—the goal is to compare palettes, not perfect precision.</li>
       <li><strong>Score one question across all 9 palettes first</strong> (not one palette across all questions)—it helps your brain calibrate what a "3" vs "5" actually means.</li>
       <li><strong>Flexibility testing:</strong> For each palette, open Canva and click "shuffle" a few times on the brand kit to see how the colors work in different compositions. We're testing flexibility too—does the palette maintain its integrity when colors are arranged differently?</li>
+      <li><strong>Progress syncing:</strong> Your scores save automatically as you score. Click "Save Now" to force a save, or "Refresh Data" to load updates from your colleague.</li>
     </ul>
   </div>
   
@@ -293,8 +472,20 @@
     <div class="scorer-column" id="leanne-column"></div>
   </div>
   
-  <div class="export-section">
-    <button class="export-btn" onclick="exportScores()">Export Scores as CSV</button>
+  <div style="text-align: center; margin-top: 2rem;">
+    <button class="export-btn" onclick="exportScores()" style="padding: 12px 32px; font-size: 14px;">Export Scores as CSV</button>
+  </div>
+</div>
+
+<div class="modal" id="setup-modal">
+  <div class="modal-content">
+    <h2>Welcome to Palette Scoring</h2>
+    <p>Who are you? (This identifies your scoring session)</p>
+    <input type="text" class="modal-input" id="user-input" placeholder="Enter your name: Steph or Leanne" />
+    <div class="modal-buttons">
+      <button class="modal-btn modal-btn-secondary" onclick="resetUser()">Change User</button>
+      <button class="modal-btn modal-btn-primary" onclick="setUser()">Continue</button>
+    </div>
   </div>
 </div>
 
@@ -349,32 +540,150 @@ const questions = [
   }
 ];
 
-const scores = {
-  steph: {},
-  leanne: {}
-};
+let currentUser = localStorage.getItem("paletteUser") || null;
+let scores = { steph: {}, leanne: {} };
+let notes = { steph: {}, leanne: {} };
+let autoSaveInterval;
 
 function initScores() {
   ["steph", "leanne"].forEach(scorer => {
     palettes.forEach((p, pi) => {
-      scores[scorer][pi] = {};
+      if (!scores[scorer][pi]) scores[scorer][pi] = {};
+      if (!notes[scorer][pi]) notes[scorer][pi] = "";
+      
       questions.forEach((qg, qi) => {
         qg.items.forEach((item, ii) => {
-          scores[scorer][pi][`${qi}-${ii}`] = null;
+          if (!scores[scorer][pi][`${qi}-${ii}`]) {
+            scores[scorer][pi][`${qi}-${ii}`] = null;
+          }
         });
       });
     });
   });
 }
 
+function showSetupModal() {
+  if (!currentUser) {
+    document.getElementById("setup-modal").classList.add("show");
+  } else {
+    loadData();
+    renderAll();
+  }
+}
+
+function resetUser() {
+  localStorage.removeItem("paletteUser");
+  currentUser = null;
+  document.getElementById("user-input").value = "";
+}
+
+function closeModal() {
+  document.getElementById("setup-modal").classList.remove("show");
+}
+
+function setUser() {
+  const input = document.getElementById("user-input").value.toLowerCase().trim();
+  if (input === "steph" || input === "leanne") {
+    currentUser = input;
+    localStorage.setItem("paletteUser", currentUser);
+    closeModal();
+    loadData();
+    renderAll();
+  } else {
+    alert("Please enter 'Steph' or 'Leanne'");
+  }
+}
+
+function updateSyncStatus(text, isLoading = false) {
+  document.getElementById("sync-text").textContent = text;
+  const dot = document.getElementById("sync-status");
+  const btn = document.getElementById("save-btn");
+  
+  if (isLoading) {
+    dot.classList.add("offline");
+    btn.textContent = "Saving...";
+  } else {
+    dot.classList.remove("offline");
+    btn.textContent = "Save Now";
+  }
+}
+
+function saveToLocalStorage() {
+  if (!currentUser) return;
+  
+  const timestamp = new Date().toISOString();
+  const dataStr = JSON.stringify({ scores, notes, timestamp });
+  
+  localStorage.setItem(`paletteData_${currentUser}`, dataStr);
+  updateSyncStatus("Saved at " + new Date().toLocaleTimeString());
+}
+
+function manualSave() {
+  updateSyncStatus("Saving...", true);
+  setTimeout(() => {
+    saveToLocalStorage();
+  }, 500);
+}
+
+function loadData() {
+  if (!currentUser) return;
+  
+  updateSyncStatus("Loading...", true);
+  
+  setTimeout(() => {
+    try {
+      const stephData = localStorage.getItem("paletteData_steph");
+      const leanneData = localStorage.getItem("paletteData_leanne");
+      
+      if (stephData) {
+        const parsed = JSON.parse(stephData);
+        scores.steph = parsed.scores.steph || scores.steph;
+        notes.steph = parsed.notes.steph || notes.steph;
+      }
+      
+      if (leanneData) {
+        const parsed = JSON.parse(leanneData);
+        scores.leanne = parsed.scores.leanne || scores.leanne;
+        notes.leanne = parsed.notes.leanne || notes.leanne;
+      }
+      
+      updateSyncStatus("Last refreshed " + new Date().toLocaleTimeString());
+      renderAll();
+    } catch (e) {
+      console.error("Error loading data:", e);
+      updateSyncStatus("Error loading data");
+    }
+  }, 500);
+}
+
+function setScore(scorer, paletteIdx, qKey, value) {
+  if (scorer !== currentUser) return;
+  
+  if (scores[scorer][paletteIdx][qKey] === value) {
+    scores[scorer][paletteIdx][qKey] = null;
+  } else {
+    scores[scorer][paletteIdx][qKey] = value;
+  }
+  
+  renderAll();
+  saveToLocalStorage();
+}
+
+function setNote(scorer, paletteIdx, text) {
+  if (scorer !== currentUser) return;
+  notes[scorer][paletteIdx] = text;
+  saveToLocalStorage();
+}
+
 function renderScorerColumn(scorer, columnId) {
   const column = document.getElementById(columnId);
+  const isCurrentUser = scorer === currentUser;
   const scorerName = scorer.charAt(0).toUpperCase() + scorer.slice(1);
   
   let html = `
     <div class="scorer-header">
-      <h2>${scorerName}</h2>
-      <p>Complete your ratings below</p>
+      <h2>${scorerName}${isCurrentUser ? " (You)" : ""}</h2>
+      <p>${isCurrentUser ? "Complete your ratings below" : "Viewing their scores"}</p>
     </div>
   `;
   
@@ -407,7 +716,8 @@ function renderScorerColumn(scorer, columnId) {
             <div class="scale-container">
               ${[1, 2, 3, 4, 5].map(num => `
                 <button class="scale-btn ${selected === num ? "selected" : ""}" 
-                  onclick="setScore('${scorer}', ${paletteIdx}, '${qKey}', ${num})">
+                  ${isCurrentUser ? `onclick="setScore('${scorer}', ${paletteIdx}, '${qKey}', ${num})"` : "disabled"}
+                  >
                   ${num}
                 </button>
               `).join("")}
@@ -417,8 +727,19 @@ function renderScorerColumn(scorer, columnId) {
       });
     });
     
+    const noteText = notes[scorer][paletteIdx] || "";
+    html += `
+      <div class="notes-section">
+        <div class="notes-label">Notes</div>
+        <textarea class="notes-textarea" 
+          placeholder="Add any comments about this palette..."
+          ${isCurrentUser ? `onchange="setNote('${scorer}', ${paletteIdx}, this.value)"` : "disabled"}
+        >${noteText}</textarea>
+      </div>
+    `;
+    
     const paletteScores = scores[scorer][paletteIdx];
-    const allScores = Object.values(paletteScores).filter(s => s !== null).flat();
+    const allScores = Object.values(paletteScores).filter(s => s !== null);
     const totalQuestions = Object.keys(paletteScores).length;
     const avgScore = allScores.length > 0 ? (allScores.reduce((a, b) => a + b, 0) / allScores.length).toFixed(1) : "—";
     
@@ -441,34 +762,25 @@ function renderScorerColumn(scorer, columnId) {
   column.innerHTML = html;
 }
 
-function setScore(scorer, paletteIdx, qKey, value) {
-  if (scores[scorer][paletteIdx][qKey] === value) {
-    scores[scorer][paletteIdx][qKey] = null;
-  } else {
-    scores[scorer][paletteIdx][qKey] = value;
-  }
-  renderScorerColumn(scorer, scorer === "steph" ? "steph-column" : "leanne-column");
+function renderAll() {
+  renderScorerColumn("steph", "steph-column");
+  renderScorerColumn("leanne", "leanne-column");
 }
 
 function exportScores() {
   let csv = "Palette,";
   
-  // Header row
   questions.forEach(qg => {
     qg.items.forEach(item => {
       csv += `"${item.q}",`;
     });
   });
-  csv += "Steph Avg,Leanne Avg,Difference\n";
+  csv += "Steph Notes,Leanne Notes,Steph Avg,Leanne Avg,Difference\n";
   
-  // Data rows
   palettes.forEach((palette, pi) => {
     csv += `"${palette.name}",`;
     
-    let stephSum = 0;
-    let stephCount = 0;
-    let leanneSum = 0;
-    let leanneCount = 0;
+    let stephSum = 0, stephCount = 0, leanneSum = 0, leanneCount = 0;
     
     questions.forEach((qg, qi) => {
       qg.items.forEach((item, ii) => {
@@ -476,24 +788,21 @@ function exportScores() {
         const stephScore = scores.steph[pi][qKey];
         const leanneScore = scores.leanne[pi][qKey];
         
-        csv += `"${stephScore || ""}|${leanneScore || ""}",`;
+        csv += `"${stephScore || ""}${stephScore && leanneScore ? "|" : ""}${leanneScore || ""}",`;
         
-        if (stephScore) {
-          stephSum += stephScore;
-          stephCount++;
-        }
-        if (leanneScore) {
-          leanneSum += leanneScore;
-          leanneCount++;
-        }
+        if (stephScore) { stephSum += stephScore; stephCount++; }
+        if (leanneScore) { leanneSum += leanneScore; leanneCount++; }
       });
     });
     
     const stephAvg = stephCount > 0 ? (stephSum / stephCount).toFixed(1) : "";
     const leanneAvg = leanneCount > 0 ? (leanneSum / leanneCount).toFixed(1) : "";
-    const diff = stephAvg && leanneAvg ? (Math.abs(stephAvg - leanneAvg)).toFixed(1) : "";
+    const diff = stephAvg && leanneAvg ? Math.abs(stephAvg - leanneAvg).toFixed(1) : "";
     
-    csv += `${stephAvg},${leanneAvg},${diff}\n`;
+    const stephNotes = (notes.steph[pi] || "").replace(/"/g, '""');
+    const leanneNotes = (notes.leanne[pi] || "").replace(/"/g, '""');
+    
+    csv += `"${stephNotes}","${leanneNotes}",${stephAvg},${leanneAvg},${diff}\n`;
   });
   
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -504,8 +813,7 @@ function exportScores() {
 }
 
 initScores();
-renderScorerColumn("steph", "steph-column");
-renderScorerColumn("leanne", "leanne-column");
+showSetupModal();
 </script>
 
 </body>
