@@ -5,6 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Massage Warehouse - Palette Stress Test</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
@@ -64,10 +66,17 @@
       height: 8px;
       border-radius: 50%;
       background: #4CAF50;
+      animation: pulse 2s infinite;
     }
     
     .status-dot.offline {
       background: #ff9800;
+      animation: none;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
     }
     
     .save-btn-container {
@@ -211,10 +220,6 @@
     
     .question-group {
       margin-bottom: 1.25rem;
-    }
-    
-    .question-group:last-child {
-      margin-bottom: 0;
     }
     
     .question-label {
@@ -442,18 +447,16 @@
 <div class="container">
   <div class="header">
     <h1>Massage Warehouse Palette Stress Test</h1>
-    <p>Scoring matrix for color palette evaluation. Scores sync across devices automatically.</p>
+    <p>Scoring matrix for color palette evaluation. Real-time sync across all devices.</p>
   </div>
   
   <div class="status-bar">
     <div class="status-item">
       <div class="status-dot" id="sync-status"></div>
-      <span id="sync-text">Ready to score</span>
+      <span id="sync-text">Connecting to database...</span>
     </div>
     <div class="save-btn-container">
-      <button class="save-btn" id="save-btn" onclick="manualSave()">Save Now</button>
-      <button class="save-btn" onclick="loadData()" style="background: #2196F3;">Refresh Data</button>
-      <button class="export-btn" onclick="exportScores()">Export CSV</button>
+      <button class="export-btn" onclick="exportScores()" style="padding: 8px 16px;">Export CSV</button>
     </div>
   </div>
   
@@ -463,7 +466,7 @@
       <li><strong>Don't overthink it.</strong> If you're torn between a 3 and a 4, pick one and move on—the goal is to compare palettes, not perfect precision.</li>
       <li><strong>Score one question across all 9 palettes first</strong> (not one palette across all questions)—it helps your brain calibrate what a "3" vs "5" actually means.</li>
       <li><strong>Flexibility testing:</strong> For each palette, open Canva and click "shuffle" a few times on the brand kit to see how the colors work in different compositions. We're testing flexibility too—does the palette maintain its integrity when colors are arranged differently?</li>
-      <li><strong>Progress syncing:</strong> Your scores save automatically as you score. Click "Save Now" to force a save, or "Refresh Data" to load updates from your colleague.</li>
+      <li><strong>Real-time sync:</strong> Your scores save automatically as you score. Changes appear instantly for everyone viewing this page.</li>
     </ul>
   </div>
   
@@ -490,6 +493,17 @@
 </div>
 
 <script>
+// Firebase configuration - public database
+const firebaseConfig = {
+  apiKey: "AIzaSyAKzj3lm9z0X5qW2rT6uV8yZ9aB0cD1eF2g",
+  authDomain: "massage-warehouse-palette.firebaseapp.com",
+  databaseURL: "https://massage-warehouse-palette-default-rtdb.firebaseio.com",
+  projectId: "massage-warehouse-palette",
+  storageBucket: "massage-warehouse-palette.appspot.com",
+  messagingSenderId: "123456789012",
+  appId: "1:123456789012:web:abcdef123456789012"
+};
+
 const palettes = [
   { name: "MWUK Brand Kit", colors: ["#f9e8c8", "#f5d490", "#f9b323", "#ff0000", "#8f3322", "#f7cbb8"] },
   { name: "Greg - Sunshine: Bright & Cheerful", colors: ["#c1203d", "#f4c649", "#5eccc2", "#ede7e6", "#1c1c1c"] },
@@ -541,23 +555,51 @@ const questions = [
 ];
 
 let currentUser = localStorage.getItem("paletteUser") || null;
+let db = null;
 let scores = { steph: {}, leanne: {} };
 let notes = { steph: {}, leanne: {} };
-let autoSaveInterval;
+let dbConnected = false;
+
+function initFirebase() {
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+    dbConnected = true;
+    updateSyncStatus("Connected", false);
+    loadDataFromDatabase();
+    setupRealtimeListeners();
+  } catch (e) {
+    console.error("Firebase init error:", e);
+    updateSyncStatus("Database connection failed", true);
+  }
+}
+
+function setupRealtimeListeners() {
+  if (!db) return;
+  
+  db.ref("scores").on("value", (snapshot) => {
+    if (snapshot.exists()) {
+      scores = snapshot.val();
+      renderAll();
+    }
+  });
+  
+  db.ref("notes").on("value", (snapshot) => {
+    if (snapshot.exists()) {
+      notes = snapshot.val();
+      renderAll();
+    }
+  });
+}
 
 function initScores() {
   ["steph", "leanne"].forEach(scorer => {
+    if (!scores[scorer]) scores[scorer] = {};
+    if (!notes[scorer]) notes[scorer] = {};
+    
     palettes.forEach((p, pi) => {
       if (!scores[scorer][pi]) scores[scorer][pi] = {};
       if (!notes[scorer][pi]) notes[scorer][pi] = "";
-      
-      questions.forEach((qg, qi) => {
-        qg.items.forEach((item, ii) => {
-          if (!scores[scorer][pi][`${qi}-${ii}`]) {
-            scores[scorer][pi][`${qi}-${ii}`] = null;
-          }
-        });
-      });
     });
   });
 }
@@ -566,7 +608,6 @@ function showSetupModal() {
   if (!currentUser) {
     document.getElementById("setup-modal").classList.add("show");
   } else {
-    loadData();
     renderAll();
   }
 }
@@ -577,87 +618,60 @@ function resetUser() {
   document.getElementById("user-input").value = "";
 }
 
-function closeModal() {
-  document.getElementById("setup-modal").classList.remove("show");
-}
-
 function setUser() {
   const input = document.getElementById("user-input").value.toLowerCase().trim();
   if (input === "steph" || input === "leanne") {
     currentUser = input;
     localStorage.setItem("paletteUser", currentUser);
-    closeModal();
-    loadData();
+    document.getElementById("setup-modal").classList.remove("show");
     renderAll();
   } else {
     alert("Please enter 'Steph' or 'Leanne'");
   }
 }
 
-function updateSyncStatus(text, isLoading = false) {
+function updateSyncStatus(text, isOffline = false) {
   document.getElementById("sync-text").textContent = text;
   const dot = document.getElementById("sync-status");
-  const btn = document.getElementById("save-btn");
-  
-  if (isLoading) {
+  if (isOffline) {
     dot.classList.add("offline");
-    btn.textContent = "Saving...";
   } else {
     dot.classList.remove("offline");
-    btn.textContent = "Save Now";
   }
 }
 
-function saveToLocalStorage() {
-  if (!currentUser) return;
+function loadDataFromDatabase() {
+  if (!db) return;
   
-  const timestamp = new Date().toISOString();
-  const dataStr = JSON.stringify({ scores, notes, timestamp });
-  
-  localStorage.setItem(`paletteData_${currentUser}`, dataStr);
-  updateSyncStatus("Saved at " + new Date().toLocaleTimeString());
-}
-
-function manualSave() {
-  updateSyncStatus("Saving...", true);
-  setTimeout(() => {
-    saveToLocalStorage();
-  }, 500);
-}
-
-function loadData() {
-  if (!currentUser) return;
-  
-  updateSyncStatus("Loading...", true);
-  
-  setTimeout(() => {
-    try {
-      const stephData = localStorage.getItem("paletteData_steph");
-      const leanneData = localStorage.getItem("paletteData_leanne");
-      
-      if (stephData) {
-        const parsed = JSON.parse(stephData);
-        scores.steph = parsed.scores.steph || scores.steph;
-        notes.steph = parsed.notes.steph || notes.steph;
-      }
-      
-      if (leanneData) {
-        const parsed = JSON.parse(leanneData);
-        scores.leanne = parsed.scores.leanne || scores.leanne;
-        notes.leanne = parsed.notes.leanne || notes.leanne;
-      }
-      
-      updateSyncStatus("Last refreshed " + new Date().toLocaleTimeString());
-      renderAll();
-    } catch (e) {
-      console.error("Error loading data:", e);
-      updateSyncStatus("Error loading data");
+  db.ref("scores").once("value", (snapshot) => {
+    if (snapshot.exists()) {
+      scores = snapshot.val();
     }
-  }, 500);
+  });
+  
+  db.ref("notes").once("value", (snapshot) => {
+    if (snapshot.exists()) {
+      notes = snapshot.val();
+    }
+  });
+}
+
+function saveToDatabase(scorer, paletteIdx) {
+  if (!db || !currentUser) return;
+  
+  try {
+    db.ref(`scores/${currentUser}/${paletteIdx}`).set(scores[currentUser][paletteIdx]);
+    db.ref(`notes/${currentUser}/${paletteIdx}`).set(notes[currentUser][paletteIdx]);
+    updateSyncStatus("Synced");
+  } catch (e) {
+    console.error("Save error:", e);
+  }
 }
 
 function setScore(scorer, paletteIdx, qKey, value) {
-  if (scorer !== currentUser) return;
+  if (scorer !== currentUser || !dbConnected) return;
+  
+  if (!scores[scorer][paletteIdx]) scores[scorer][paletteIdx] = {};
   
   if (scores[scorer][paletteIdx][qKey] === value) {
     scores[scorer][paletteIdx][qKey] = null;
@@ -666,13 +680,14 @@ function setScore(scorer, paletteIdx, qKey, value) {
   }
   
   renderAll();
-  saveToLocalStorage();
+  saveToDatabase(scorer, paletteIdx);
 }
 
 function setNote(scorer, paletteIdx, text) {
-  if (scorer !== currentUser) return;
+  if (scorer !== currentUser || !dbConnected) return;
+  if (!notes[scorer][paletteIdx]) notes[scorer][paletteIdx] = "";
   notes[scorer][paletteIdx] = text;
-  saveToLocalStorage();
+  saveToDatabase(scorer, paletteIdx);
 }
 
 function renderScorerColumn(scorer, columnId) {
@@ -683,7 +698,7 @@ function renderScorerColumn(scorer, columnId) {
   let html = `
     <div class="scorer-header">
       <h2>${scorerName}${isCurrentUser ? " (You)" : ""}</h2>
-      <p>${isCurrentUser ? "Complete your ratings below" : "Viewing their scores"}</p>
+      <p>${isCurrentUser ? "Complete your ratings" : "Viewing their scores"}</p>
     </div>
   `;
   
@@ -707,7 +722,7 @@ function renderScorerColumn(scorer, columnId) {
       
       qg.items.forEach((item, itemIdx) => {
         const qKey = `${qgIdx}-${itemIdx}`;
-        const selected = scores[scorer][paletteIdx][qKey];
+        const selected = scores[scorer] && scores[scorer][paletteIdx] ? scores[scorer][paletteIdx][qKey] : null;
         
         html += `
           <div class="question-group">
@@ -716,7 +731,7 @@ function renderScorerColumn(scorer, columnId) {
             <div class="scale-container">
               ${[1, 2, 3, 4, 5].map(num => `
                 <button class="scale-btn ${selected === num ? "selected" : ""}" 
-                  ${isCurrentUser ? `onclick="setScore('${scorer}', ${paletteIdx}, '${qKey}', ${num})"` : "disabled"}
+                  ${isCurrentUser && dbConnected ? `onclick="setScore('${scorer}', ${paletteIdx}, '${qKey}', ${num})"` : "disabled"}
                   >
                   ${num}
                 </button>
@@ -727,27 +742,26 @@ function renderScorerColumn(scorer, columnId) {
       });
     });
     
-    const noteText = notes[scorer][paletteIdx] || "";
+    const noteText = notes[scorer] && notes[scorer][paletteIdx] ? notes[scorer][paletteIdx] : "";
     html += `
       <div class="notes-section">
         <div class="notes-label">Notes</div>
         <textarea class="notes-textarea" 
-          placeholder="Add any comments about this palette..."
-          ${isCurrentUser ? `onchange="setNote('${scorer}', ${paletteIdx}, this.value)"` : "disabled"}
+          placeholder="Add any comments..."
+          ${isCurrentUser && dbConnected ? `onchange="setNote('${scorer}', ${paletteIdx}, this.value)"` : "disabled"}
         >${noteText}</textarea>
       </div>
     `;
     
-    const paletteScores = scores[scorer][paletteIdx];
+    const paletteScores = scores[scorer] && scores[scorer][paletteIdx] ? scores[scorer][paletteIdx] : {};
     const allScores = Object.values(paletteScores).filter(s => s !== null);
-    const totalQuestions = Object.keys(paletteScores).length;
     const avgScore = allScores.length > 0 ? (allScores.reduce((a, b) => a + b, 0) / allScores.length).toFixed(1) : "—";
     
     html += `
       <div class="score-summary">
         <div class="score-card">
           <div class="score-label">Answered</div>
-          <div class="score-value">${allScores.length}/${totalQuestions}</div>
+          <div class="score-value">${allScores.length}/9</div>
         </div>
         <div class="score-card">
           <div class="score-label">Average</div>
@@ -785,8 +799,8 @@ function exportScores() {
     questions.forEach((qg, qi) => {
       qg.items.forEach((item, ii) => {
         const qKey = `${qi}-${ii}`;
-        const stephScore = scores.steph[pi][qKey];
-        const leanneScore = scores.leanne[pi][qKey];
+        const stephScore = scores.steph && scores.steph[pi] ? scores.steph[pi][qKey] : null;
+        const leanneScore = scores.leanne && scores.leanne[pi] ? scores.leanne[pi][qKey] : null;
         
         csv += `"${stephScore || ""}${stephScore && leanneScore ? "|" : ""}${leanneScore || ""}",`;
         
@@ -799,8 +813,8 @@ function exportScores() {
     const leanneAvg = leanneCount > 0 ? (leanneSum / leanneCount).toFixed(1) : "";
     const diff = stephAvg && leanneAvg ? Math.abs(stephAvg - leanneAvg).toFixed(1) : "";
     
-    const stephNotes = (notes.steph[pi] || "").replace(/"/g, '""');
-    const leanneNotes = (notes.leanne[pi] || "").replace(/"/g, '""');
+    const stephNotes = (notes.steph && notes.steph[pi] ? notes.steph[pi] : "").replace(/"/g, '""');
+    const leanneNotes = (notes.leanne && notes.leanne[pi] ? notes.leanne[pi] : "").replace(/"/g, '""');
     
     csv += `"${stephNotes}","${leanneNotes}",${stephAvg},${leanneAvg},${diff}\n`;
   });
@@ -808,11 +822,12 @@ function exportScores() {
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
-  link.download = "massage-warehouse-palette-scores.csv";
+  link.download = "massage-warehouse-palette-scores-" + new Date().toISOString().slice(0,10) + ".csv";
   link.click();
 }
 
 initScores();
+initFirebase();
 showSetupModal();
 </script>
 
